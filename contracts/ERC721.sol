@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.28;
+pragma solidity ^0.8.22;
 
 import "IERC721Metadata.sol";
 import "IERC721Receiver.sol";
@@ -22,16 +22,10 @@ contract ERC721 is IERC721Metadata {
 
     constructor(string memory _name, string memory _symbol) {
         name = _name;
-        symbol = _symbol;
-        
+        symbol = _symbol;        
     }
 
-    function _exists(uint tokenId) internal view returns (bool) {
-        
-        return _owners[tokenId] != address(0);
-    }
-
-     function balanceOf(address owner) public view returns (uint){
+    function balanceOf(address owner) public view returns (uint){
         require(owner != address(0), "zero address");
 
         return _balances[owner];
@@ -41,7 +35,6 @@ contract ERC721 is IERC721Metadata {
         require(_isApprovedOrOwner(msg.sender, tokenId), "not an owner or approved");
 
         _transfer(from, to, tokenId);
-
     }
 
     function safeTransferFrom(address from, address to, uint tokenId) public {
@@ -50,12 +43,8 @@ contract ERC721 is IERC721Metadata {
         _safeTransfer(from, to, tokenId);
     }    
 
-    function _baseURI() internal pure virtual returns(string memory) {
-        return "";
-
-    }
     
-    function tokenURI(uint tokenId) public view _requireMinted(tokenId) returns(string memory) {
+    function tokenURI(uint tokenId) public view virtual _requireMinted(tokenId) returns(string memory) {
         string memory baseURI = _baseURI();
         return bytes(baseURI).length >0 ? string(abi.encodePacked(baseURI, tokenId.toString())) : "";
 
@@ -78,7 +67,6 @@ contract ERC721 is IERC721Metadata {
 
     function isApprovedForAll(address owner, address operator) public view returns (bool){
         return _operatorApprovals([owner][operator]);
-
     }
 
     function getApproved(uint tokenId) public view _requireMinted(tokenId) returns(address){
@@ -91,9 +79,13 @@ contract ERC721 is IERC721Metadata {
         delete _tokenApprovals[tokenId];
         _balances[owner]--;
         delete _owners[tokenId];
-
     }
     
+    function _baseURI() internal pure virtual returns(string memory) {
+        
+        return "";
+    }
+
     function _safeMint(address to, uint tokenID) internal virtual {
         _mint(to, tokenID);
 
@@ -107,6 +99,7 @@ contract ERC721 is IERC721Metadata {
         _owners[tokenID] = to;
         _balances[to]++;
     }
+    
     function _safeTransfer(address from, address to, uint tokenId) internal {
         _transfer(from, to, tokenId);
 
@@ -139,14 +132,12 @@ contract ERC721 is IERC721Metadata {
                     assembly {
                         revert(add(32, reason), mload(reason))
                     }
-                }
-                
+                }                
             }
         }
         else {
             return true;
         }
-
     }
     
     function _isApprovedOrOwner(address spender, uint tokenId) internal view returns(bool){
@@ -157,7 +148,6 @@ contract ERC721 is IERC721Metadata {
             isApprovedForAll(owner, spender) ||
             getApproved(tokenId) == spender,
             "not an owner or approved"
-
         );
     }
 
@@ -166,7 +156,5 @@ contract ERC721 is IERC721Metadata {
     }
 
     function _beforeTokenTransfer(address from, address to, uint tokenId) internal virtual {}
-    function _afterTokenTransfer(address from, address to, uint tokenId) internal virtual {}
-
-    
+    function _afterTokenTransfer(address from, address to, uint tokenId) internal virtual {}    
 }

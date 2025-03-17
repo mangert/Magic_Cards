@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.28;
+pragma solidity ^0.8.22;
 
 interface IERC721Receiver {
     function onERC721Received(
