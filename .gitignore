@@ -18,3 +18,8 @@ ignition/deployments/chain-31337
 
 #vscode
 .vscode
+
+#vscode
+.deps/
+.states/
+contracts/artifacts/

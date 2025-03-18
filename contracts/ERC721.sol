@@ -1,12 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.22;
 
-import "IERC721Metadata.sol";
-import "IERC721Receiver.sol";
+import "./IERC721Metadata.sol";
+import "./IERC721Receiver.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 
 contract ERC721 is IERC721Metadata {
+
+    event Transfer(address indexed from, address indexed to, uint indexed tokenID);
+    event Approval(address indexed owner, address indexed approved, uint indexed tokenId);
+    event ApprovalForAll(address indexed owner, address indexed operator, bool approved);
+
     using Strings for uint;
     string public name;
     string public symbol;
@@ -20,9 +25,10 @@ contract ERC721 is IERC721Metadata {
         _;
     }
 
-    constructor(string memory _name, string memory _symbol) {
-        name = _name;
-        symbol = _symbol;        
+    //constructor(string memory _name, string memory _symbol) {
+    constructor() {
+        //name = _name;
+        //symbol = _symbol;        
     }
 
     function balanceOf(address owner) public view returns (uint){
@@ -31,7 +37,7 @@ contract ERC721 is IERC721Metadata {
         return _balances[owner];
      }
     
-    function transferFrom(address from, address to, uint tokenId, bytes calldata data) external{
+    function transferFrom(address from, address to, uint tokenId, bytes calldata data)  public {
         require(_isApprovedOrOwner(msg.sender, tokenId), "not an owner or approved");
 
         _transfer(from, to, tokenId);
@@ -46,7 +52,7 @@ contract ERC721 is IERC721Metadata {
     
     function tokenURI(uint tokenId) public view virtual _requireMinted(tokenId) returns(string memory) {
         string memory baseURI = _baseURI();
-        return bytes(baseURI).length >0 ? string(abi.encodePacked(baseURI, tokenId.toString())) : "";
+        return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, tokenId.toString())) : "";
 
     }
     
@@ -66,7 +72,7 @@ contract ERC721 is IERC721Metadata {
     }
 
     function isApprovedForAll(address owner, address operator) public view returns (bool){
-        return _operatorApprovals([owner][operator]);
+        return _operatorApprovals[owner][operator];
     }
 
     function getApproved(uint tokenId) public view _requireMinted(tokenId) returns(address){
