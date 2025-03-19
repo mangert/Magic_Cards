@@ -28,7 +28,7 @@ contract MagicCard is ERC721 {
     TokenDescription [] _tokenStorage;    
 
     //Цены WEY
-    uint public constant MINT_PRICE = 1000000; 
+    uint public mintPrice = 1000000; 
     uint public constant REP_PRICE = 200;
 
     //Модификаторы
@@ -57,6 +57,10 @@ contract MagicCard is ERC721 {
         _tokenStorage[tokenId].rep += repReward;
         address recipient = _owners[tokenId];
         emit ReputationIncrease(recipient, tokenId, message);
+    }
+
+    function getBalance() external view returns(uint) {
+        return address(this).balance;
     }
 
     //функции для статистики и отображения
@@ -113,21 +117,21 @@ contract MagicCard is ERC721 {
     //функции для пользователя
     function mint() external payable {
         
-        require(msg.value < MINT_PRICE, "not enough money");
+        require(msg.value >= mintPrice, "not enough money");
         
-        uint dropAmount = MINT_PRICE / 3;        
+        uint dropAmount = mintPrice / 3;        
         _distributeAll(dropAmount);
                
         uint tokenId = counterNFT;
         counterNFT++;
-        TokenDescription memory token = _createNewNFT(tokenId, msg.sender);
-        _tokenStorage.push(token);
+        //TokenDescription memory token = _createNewNFT(tokenId, msg.sender);
+        //_tokenStorage.push(token);
         super._safeMint(msg.sender, tokenId);                
     }
 
     function buyNFT(uint tokenId) external payable {
         
-        uint price = MINT_PRICE + _tokenStorage[tokenId].rep * REP_PRICE;
+        uint price = mintPrice + _tokenStorage[tokenId].rep * REP_PRICE;
         require(msg.value < price, "not enough money");        
         
         uint dropAmount = price / 3;
@@ -139,7 +143,7 @@ contract MagicCard is ERC721 {
     
     function sellNFT(uint tokenId) external {
         
-        uint price = MINT_PRICE + _tokenStorage[tokenId].rep * REP_PRICE - (MINT_PRICE / 5); //20% дисконта к цене минта, но покупаем всю репу
+        uint price = mintPrice + _tokenStorage[tokenId].rep * REP_PRICE - (mintPrice / 5); //20% дисконта к цене минта, но покупаем всю репу
         sellNFT(tokenId, price);                
     }
 
@@ -245,8 +249,8 @@ contract MagicCard is ERC721 {
     
     function _distributeAll(uint dropAmount) internal {
 
-        uint totalRep = _totalRepCalc();
-        uint dropOnRep = dropAmount / totalRep;
+        uint totalRep = _totalRepCalc();        
+        uint dropOnRep = dropAmount / (totalRep !=0 ? totalRep : 1);
         
         for(uint counter = 0; counter != counterNFT; ++counter) {
             if(_owners[counter] != address(this)) {
