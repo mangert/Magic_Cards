@@ -7,15 +7,23 @@ contract MagicCard is ERC721 {
     
     address owner; //владелец
     
-    //типы, описывающие токен
-    enum  Elements {Jocker, Fire, Air, Water, Earth}         
+    //Описание токена и хранилище
+    enum  Elements {Jocker, Fire, Air, Water, Earth}
+    string [5] elementsName = ["Jocker", "Fire", "Air", "Water", "Earth"];         
+
+    mapping(uint => uint) tokenRep;
+    mapping(uint => Elements) tokenType;
     
-    struct TokenDescription {
+    //заготовка под оптимизацию
+    /*struct TokenDesc {
         uint tokenId;
         Elements element;
-        uint rep;
-        string tokenURI;       
+        uint rep;        
     }
+    //Storage
+    mapping(address => mapping(uint => TokenDesc) tokenStorage);
+    */
+
 
     //Эмиссия
     uint[5] public supply = [1, 111, 222, 333, 444]; //задаем значения максимального сапплая
@@ -23,10 +31,8 @@ contract MagicCard is ERC721 {
     
     uint [5] public currentSupply; // текущая эмиссия NFT каждого типа
     uint counterNFT; // счетчик выпущенных NFT
-
-    //Storage
-    TokenDescription [] _tokenStorage;    
-
+    bool preMintFlag = false;
+    
     //Цены WEY
     uint public mintPrice = 1000000; 
     uint public constant REP_PRICE = 200;
@@ -54,7 +60,7 @@ contract MagicCard is ERC721 {
 
     function setTaskRep(uint tokenId, uint repReward, string memory message) external onlyOwner {
         
-        _tokenStorage[tokenId].rep += repReward;
+        tokenRep[tokenId] += repReward;
         address recipient = _owners[tokenId];
         emit ReputationIncrease(recipient, tokenId, message);
     }
@@ -65,8 +71,31 @@ contract MagicCard is ERC721 {
 
     //функции для статистики и отображения
 
+    //геттеры для мэппингов и полей
+    function getUserBalance(address user) external view returns(uint) {
+        return _balances[user];
+    }
+    function getCountNFT() external view returns(uint) {
+        return counterNFT;
+    }
+
+    function getMintPrice() public view returns(uint){
+        return mintPrice;
+
+    }
+    function getBuyPrice(uint tokenId) public view returns(uint){
+        return mintPrice + tokenRep[tokenId] * REP_PRICE;
+        
+    }
+
+    function getSellPrice(uint tokenId) public view returns(uint){
+        return 0;
+        
+    }
+    
     function tokenURI(uint tokenId) public view override _requireMinted(tokenId) returns (string memory) {
-        string memory _tokenURI = _tokenStorage[tokenId].tokenURI;
+        /*string memory _tokenURI = _tokenStorage[tokenId].tokenURI;*/
+        string memory _tokenURI = "";
         string memory _base = _baseURI();
 
         if(bytes(_base).length == 0){
@@ -79,60 +108,60 @@ contract MagicCard is ERC721 {
         super.tokenURI(tokenId);
     }
     
-    /*function getDescription(uint tokenId) public returns(TokenDescription memory) {
+    function getDescription(uint tokenId) public view returns(string memory, uint) {
         
-        TokenDescription memory token = TokenDescription({tokenId: _tokenStorage[tokenId].tokenId,
-                                                          element: _tokenStorage[tokenId].element, 
-                                                          rep: _tokenStorage[tokenId].rep,
-                                                          tokenURI: _tokenStorage[tokenId].tokenURI});
-        return token;
-    }*/
-    /*function getDescription(uint tokenId) public view returns(bytes memory){
-        TokenDescription memory token = _tokenStorage[tokenId];       
-        string memory description = Strings.concat(string("{"), tring("tokenID"));
-        bytes memory result = bytes(description);
+        string memory strElement = elementsName[uint(tokenType[tokenId])];
+        uint rep = tokenRep[tokenId];
+        return(strElement, rep);
+    }    
+    
+    function userNFTs(address user) public view returns(uint[] memory){
+        uint countNFT = _balances[user];         
+        uint[] memory userNFT = new uint256[](countNFT);
         
-        return result;
-    }*/
-
-    function isMintable() external view returns(bool) {
-        return (counterNFT < _maxTotalSupply());
-    }
-
-    /*function userNFTs(address user) public view returns(TokenDescription[] memory){
-        //uint countNFT = _balances[user];
-        TokenDescription[] memory userNFTs;
         uint i;
         for(uint counter = 0; counter != counterNFT; ++counter){
             if(_owners[counter] == user){
-                userNFTs.push(new TokenDescription(getDescription(counter)));
-                //userNFTs.push(_tokenStorage[counter]);
-                //userNFTs[i] = getDescription(counter);
-                //i++;
+                userNFT[i] = counter;
+                ++i;
             }
         }
-        return userNFTs; 
+        
+        return userNFT;
+    }
+    //заготовка под оптимизацию
+    /*function getDescription(uint tokenId) public returns(TokenDesc memory) {        
+        
+        return(tokenbStorage[tokenId]);
     }*/
+    
+    
+
+    function isMintable() public view returns(bool) {
+        return (counterNFT < _maxTotalSupply());
+    }
+
+    
     
     //функции для пользователя
     function mint() external payable {
         
         require(msg.value >= mintPrice, "not enough money");
+        require(isMintable(), "mint is over");
         
         uint dropAmount = mintPrice / 3;        
         _distributeAll(dropAmount);
                
         uint tokenId = counterNFT;
         counterNFT++;
-        //TokenDescription memory token = _createNewNFT(tokenId, msg.sender);
-        //_tokenStorage.push(token);
+        _createNewNFT(tokenId, msg.sender);        
         super._safeMint(msg.sender, tokenId);                
     }
 
     function buyNFT(uint tokenId) external payable {
         
-        uint price = mintPrice + _tokenStorage[tokenId].rep * REP_PRICE;
-        require(msg.value < price, "not enough money");        
+        uint price = getBuyPrice(tokenId);
+        require(msg.value >= price, "not enough money");        
         
         uint dropAmount = price / 3;
         _distributeAll(dropAmount);       
@@ -143,7 +172,7 @@ contract MagicCard is ERC721 {
     
     function sellNFT(uint tokenId) external {
         
-        uint price = mintPrice + _tokenStorage[tokenId].rep * REP_PRICE - (mintPrice / 5); //20% дисконта к цене минта, но покупаем всю репу
+        uint price = mintPrice + tokenRep[tokenId] * REP_PRICE - (mintPrice / 5); //20% дисконта к цене минта, но покупаем всю репу
         sellNFT(tokenId, price);                
     }
 
@@ -164,13 +193,15 @@ contract MagicCard is ERC721 {
 
     //служебные функции      
     
-    function _preMint() public {
+    function preMint() public {
+        
+        require(!preMintFlag, "can't premint twice");
         //первоначальная эмиссия
         //минтим на баланс контракта 1 джокера и по 10% каждого типа NFT
         address self = address(this);
         //Джокер
         currentSupply[uint(Elements.Jocker)]++;        
-        _tokenStorage[counterNFT] = _createNewNFT(0,Elements.Jocker);
+        _createNewNFT(0,Elements.Jocker);
         _mint(self, counterNFT);
         ++counterNFT;        
         //Остальные
@@ -179,11 +210,12 @@ contract MagicCard is ERC721 {
             uint count = supply[uint(element)] / 10;
             for(uint j = 0; j != count; ++j){
                 currentSupply[uint(element)]++;
-                _tokenStorage[counterNFT] = _createNewNFT(counterNFT, element);
+                _createNewNFT(counterNFT, element);
                 _mint(self, counterNFT);
                 ++counterNFT;
             }
         }
+        preMintFlag = true;
     }        
 
     function _maxTotalSupply() internal view returns (uint) {
@@ -201,10 +233,10 @@ contract MagicCard is ERC721 {
             limits[counter] = supply[counter] - currentSupply[counter];
         }         
         
-        uint random = uint(keccak256(abi.encodePacked(block.timestamp, recipient, tokenId))) % tokenId;        
+        uint random = uint(keccak256(abi.encodePacked(block.timestamp, recipient, tokenId))) % _maxTotalSupply();        
         Elements element = Elements.Earth;
 
-        for(uint counter = 1; counter != 5; ++counter) {
+        for(uint counter = 1; counter < 5; ++counter) {
             if(random <= (limits[counter - 1] + limits[counter])) {
                 element = Elements(counter);
                 counter = 5;
@@ -215,37 +247,32 @@ contract MagicCard is ERC721 {
 
     function _repIncrease(uint tokenId) internal {
         
-        uint repInc =  _baseRep[uint(_tokenStorage[tokenId].element)] / 10; //за каждую простую операцию добавляем 10% базовой репы
-        _tokenStorage[tokenId].rep += repInc;
-        _tokenStorage[0].rep += repInc; //Джокер всегда получает премию
+        uint repInc =  _baseRep[uint(tokenType[tokenId])] / 10; //за каждую простую операцию добавляем 10% базовой репы
+        tokenRep[tokenId] += repInc;
+        tokenRep[0] += repInc; //Джокер всегда получает премию
     }
 
     function _totalRepCalc() internal view returns(uint) {
         
         uint totalRep;
         for(uint counter = 0; counter != counterNFT; ++counter){
-            totalRep += _tokenStorage[counter].rep;
+            totalRep += tokenRep[counter];
         }
         return totalRep;
-    }       
-        
-    function _createNewNFT(uint tokenId, Elements element) internal view returns (TokenDescription memory){
-        
-        TokenDescription memory token = TokenDescription({tokenId: tokenId,
-                                                   element: element, 
-                                                   rep: _baseRep[uint(element)],
-                                                   tokenURI: ""});
-        return token;
-    }  
-     
-    
-    function _createNewNFT(uint tokenId, address recipient) internal view returns (TokenDescription memory){
+    } 
+
+    function _createNewNFT(uint tokenId, address recipient) internal {
         
         Elements element = _calculateRandomElement(tokenId, recipient);
-
-        return _createNewNFT(tokenId, element);
-
+        tokenType[tokenId] = element;
+        tokenRep[tokenId]=_baseRep[uint(element)];
     }    
+
+    function _createNewNFT(uint tokenId, Elements element) internal {
+        
+        tokenType[tokenId] = element;
+        tokenRep[tokenId]=_baseRep[uint(element)];
+    }
     
     function _distributeAll(uint dropAmount) internal {
 
@@ -254,7 +281,7 @@ contract MagicCard is ERC721 {
         
         for(uint counter = 0; counter != counterNFT; ++counter) {
             if(_owners[counter] != address(this)) {
-                uint drop = dropOnRep * _tokenStorage[counter].rep;
+                uint drop = dropOnRep * tokenRep[counter];
                 address payable recipient = payable(_owners[counter]);
                 recipient.transfer(drop);
             }
