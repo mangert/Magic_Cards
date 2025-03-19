@@ -24,11 +24,8 @@ contract ERC721 is IERC721Metadata {
         require(_exists(tokenId), "not minted");
         _;
     }
-
-    //constructor(string memory _name, string memory _symbol) {
-    constructor() {
-        //name = _name;
-        //symbol = _symbol;        
+    
+    constructor() {       
     }
 
     function balanceOf(address owner) public view returns (uint){
@@ -37,7 +34,7 @@ contract ERC721 is IERC721Metadata {
         return _balances[owner];
      }
     
-    function transferFrom(address from, address to, uint tokenId, bytes calldata data)  public {
+    function transferFrom(address from, address to, uint tokenId)  public {
         require(_isApprovedOrOwner(msg.sender, tokenId), "not an owner or approved");
 
         _transfer(from, to, tokenId);

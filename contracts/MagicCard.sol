@@ -39,9 +39,10 @@ contract MagicCard is ERC721 {
     //события
     event ReputationIncrease(address indexed to, uint indexed tokenID, string message);
     
-    constructor(string memory name, string memory symbol) {        
-        owner = msg.sender; 
-        //_preMint();
+    constructor() {        
+        name = "MagicNFT";
+        symbol = "MEL";
+        owner = msg.sender;         
     }
 
     //функции для владельца
@@ -74,14 +75,21 @@ contract MagicCard is ERC721 {
         super.tokenURI(tokenId);
     }
     
-    function getDescription(uint tokenId) public returns(TokenDescription memory) {
+    /*function getDescription(uint tokenId) public returns(TokenDescription memory) {
         
         TokenDescription memory token = TokenDescription({tokenId: _tokenStorage[tokenId].tokenId,
                                                           element: _tokenStorage[tokenId].element, 
                                                           rep: _tokenStorage[tokenId].rep,
                                                           tokenURI: _tokenStorage[tokenId].tokenURI});
         return token;
-    }
+    }*/
+    /*function getDescription(uint tokenId) public view returns(bytes memory){
+        TokenDescription memory token = _tokenStorage[tokenId];       
+        string memory description = Strings.concat(string("{"), tring("tokenID"));
+        bytes memory result = bytes(description);
+        
+        return result;
+    }*/
 
     function isMintable() external view returns(bool) {
         return (counterNFT < _maxTotalSupply());
@@ -145,8 +153,7 @@ contract MagicCard is ERC721 {
     }
 
     function burn(uint tokenId) public override {
-
-        bytes calldata message;
+        
         super.safeTransferFrom(msg.sender, address(this), tokenId);
 
     }
