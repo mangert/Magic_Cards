@@ -2,8 +2,10 @@
 pragma solidity ^0.8.22;
 
 import "./ERC721.sol";
+import { ERC165 } from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
+import "hardhat/console.sol";
 
-contract MagicCard is ERC721{
+contract MagicCard is ERC721, ERC165{
     
     address owner; //владелец
     
@@ -204,6 +206,13 @@ contract MagicCard is ERC721{
     }
 
     //служебные функции      
+
+    receive () external payable {
+        revert("please use the buy or mint functions to purchase NFT");
+    }
+    fallback() external {
+       console.logBytes(msg.data);
+    }
     
     function preMint() public {
         
