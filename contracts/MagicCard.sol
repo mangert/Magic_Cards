@@ -3,7 +3,7 @@ pragma solidity ^0.8.22;
 
 import "./ERC721.sol";
 
-contract MagicCard is ERC721 {
+contract MagicCard is ERC721{
     
     address owner; //владелец
     
@@ -24,7 +24,6 @@ contract MagicCard is ERC721 {
     mapping(address => mapping(uint => TokenDesc) tokenStorage);
     */
 
-
     //Эмиссия
     uint[5] public supply = [1, 111, 222, 333, 444]; //задаем значения максимального сапплая
     uint[5] _baseRep = [1000, 100, 75, 50, 25]; //задаем базовые значения репы      
@@ -33,9 +32,9 @@ contract MagicCard is ERC721 {
     uint counterNFT; // счетчик выпущенных NFT
     bool preMintFlag = false;
     
-    //Цены WEY
-    uint public mintPrice = 1000000; 
-    uint public constant REP_PRICE = 200;
+    //Цены wey
+    uint public mintPrice = 100000000000000000; 
+    uint public repPrice = 200000000000000;
 
     //Модификаторы
     modifier onlyOwner() {
@@ -52,10 +51,32 @@ contract MagicCard is ERC721 {
     }
 
     //функции для владельца
-    function withdraw(address payable recipient) external onlyOwner() {
-        uint minimumBalance; //сделaть функцию для расчета
+    function withdrawAll(address payable recipient) external onlyOwner() {
+        uint minimumBalance =_calcMinimumBalance(); //сделaть функцию для расчета
         uint amount = address(this).balance - minimumBalance;        
         recipient.transfer(amount);
+    }
+
+    function withdraw(uint amount, address payable recipient) external onlyOwner() {
+        uint minimumBalance = _calcMinimumBalance(); 
+        uint maxAmount = address(this).balance - minimumBalance;        
+        require(amount <= maxAmount, "too much sum");
+        recipient.transfer(amount);
+    }
+
+    function _calcMinimumBalance() public view onlyOwner() returns (uint) {
+
+        uint totalUserPrice;
+        uint usersNFTCount;
+        for(uint counter = 0; counter != counterNFT; ++counter){
+            if(ownerOf(counter) != address(this)) {
+                totalUserPrice += getSellPrice(counter);
+                ++usersNFTCount;
+            }
+        }
+        uint estimatedGasCosts = 1657252749 * 30000000;
+        totalUserPrice += estimatedGasCosts;
+        return totalUserPrice;
     }
 
     function setTaskRep(uint tokenId, uint repReward, string memory message) external onlyOwner {
@@ -79,23 +100,23 @@ contract MagicCard is ERC721 {
         return counterNFT;
     }
 
-    function getMintPrice() public view returns(uint){
+    function getMintPrice() public view returns(uint) {
         return mintPrice;
 
     }
-    function getBuyPrice(uint tokenId) public view returns(uint){
-        return mintPrice + tokenRep[tokenId] * REP_PRICE;
+    function getBuyPrice(uint tokenId) public view returns(uint) {
+        return mintPrice + tokenRep[tokenId] * repPrice;
         
     }
 
-    function getSellPrice(uint tokenId) public view returns(uint){
-        return 0;
-        
+    function getSellPrice(uint tokenId) public view returns(uint) {
+        return mintPrice + tokenRep[tokenId] * repPrice - (mintPrice / 5); //20% дисконта к цене минта, но контракт покупает всю репу;        
     }
     
     function tokenURI(uint tokenId) public view override _requireMinted(tokenId) returns (string memory) {
-        /*string memory _tokenURI = _tokenStorage[tokenId].tokenURI;*/
-        string memory _tokenURI = "";
+        
+        string memory _tokenURI = elementsName[uint(tokenType[tokenId])];
+        
         string memory _base = _baseURI();
 
         if(bytes(_base).length == 0){
@@ -133,15 +154,12 @@ contract MagicCard is ERC721 {
     /*function getDescription(uint tokenId) public returns(TokenDesc memory) {        
         
         return(tokenbStorage[tokenId]);
-    }*/
-    
+    }*/   
     
 
     function isMintable() public view returns(bool) {
         return (counterNFT < _maxTotalSupply());
-    }
-
-    
+    }    
     
     //функции для пользователя
     function mint() external payable {
@@ -166,24 +184,18 @@ contract MagicCard is ERC721 {
         uint dropAmount = price / 3;
         _distributeAll(dropAmount);       
         _repIncrease(tokenId);
-        super._safeTransfer(address(this), msg.sender, tokenId);
-               
+        super._safeTransfer(address(this), msg.sender, tokenId);              
     }
     
     function sellNFT(uint tokenId) external {
         
-        uint price = mintPrice + tokenRep[tokenId] * REP_PRICE - (mintPrice / 5); //20% дисконта к цене минта, но покупаем всю репу
-        sellNFT(tokenId, price);                
-    }
-
-    function sellNFT(uint tokenId, uint price) public {
-        
+        uint price = getSellPrice(tokenId);
         address payable seller = payable (msg.sender);
         
         super.safeTransferFrom(seller, address(this), tokenId);
         //переводим деньги
-        seller.transfer(price);
-    }
+        seller.transfer(price);     
+    }    
 
     function burn(uint tokenId) public override {
         

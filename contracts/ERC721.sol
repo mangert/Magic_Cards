@@ -6,11 +6,12 @@ import "./IERC721Receiver.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 
-contract ERC721 is IERC721Metadata {
+contract ERC721 is IERC721Metadata, IERC721Receiver {
 
     event Transfer(address indexed from, address indexed to, uint indexed tokenID);
     event Approval(address indexed owner, address indexed approved, uint indexed tokenId);
     event ApprovalForAll(address indexed owner, address indexed operator, bool approved);
+    event TokenReceived(address operator, address from, uint256 tokenId, bytes data);
 
     using Strings for uint;
     string public name;
@@ -152,6 +153,7 @@ contract ERC721 is IERC721Metadata {
             getApproved(tokenId) == spender,
             "not an owner or approved"
         );
+        return true;
     }
 
     function _exists(uint tokenId) internal view returns (bool) {
@@ -160,4 +162,16 @@ contract ERC721 is IERC721Metadata {
 
     function _beforeTokenTransfer(address from, address to, uint tokenId) internal virtual {}
     function _afterTokenTransfer(address from, address to, uint tokenId) internal virtual {}    
+
+    function onERC721Received(
+        address operator, 
+        address from, 
+        uint256 tokenId, 
+        bytes calldata data
+    ) external override returns (bytes4) {
+        // Логируем или обрабатываем информацию о переданном токене
+        emit TokenReceived(operator, from, tokenId, data);        
+        // Возвращаем селектор функции, который подтверждает успешную обработку
+        return this.onERC721Received.selector;
+    }
 }
