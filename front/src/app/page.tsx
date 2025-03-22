@@ -13,6 +13,7 @@ import type { BrowserProvider } from "ethers";
 import ConnectWallet from "@/components/ConnectWallet";
 import WaitinForTransactionMessage from "@/components/WaitingForTransactionMessage";
 import TransactionErrorMessage from "@/components/TransactionErrorMessage";
+import MintButton from "@/components/MintButton"; // Импортируем компонент MintButton
 
 const HARDHAT_NETWORK_ID = "0x539";
 const MAGIC_CARD_ADDRESS = "0x5fbdb2315678afecb367f032d93f642f64180aa3";
@@ -27,6 +28,10 @@ type CurrentConnectionProps = {
 
 export default function Home() {
     const [networkError, setNetworkError] = useState<string>();
+    const [txBeingSent, setTxBeingSent] = useState<string>();
+    const [transactionError, setTransactionError] = useState<any>();
+    const [currentBalance, setCurrentBalance] = useState<string>();
+    const [mintPrice, setMintPrice] = useState<string | null>(null);
     const [currentConnection, setCurrentConnection] = useState<CurrentConnectionProps>();
   
     const _connectWallet = async() => {
@@ -49,16 +54,33 @@ export default function Home() {
           if(newAccount === undefined){
             return _resetState();
           }
-          await _initialize(ethers.getAddress(selectedAccount));
-        }
+          await _initialize(ethers.getAddress(newAccount));
+        }        
       );
   
       window.ethereum.on("chainChanged", 
         async ([_networkId] : any) => {
-          _resetState;      
+          _resetState();      
         }
       );
     };
+
+    useEffect(() => {
+        (async () => {
+          if (currentConnection?.provider) {
+            // Получаем цену для минта из контракта, не используя signer
+            const magic = MagicCard__factory.connect(MAGIC_CARD_ADDRESS, currentConnection.provider);
+            const priceInWei = await magic.getMintPrice(); // Получаем цену в wei
+            setMintPrice(priceInWei.toString()); // Сохраняем цену
+          }
+    
+          if (currentConnection?.provider && currentConnection.signer) {
+            setCurrentBalance(
+              (await currentConnection.provider.getBalance(currentConnection.signer.address)).toString()
+            );
+          }
+        })();
+      }, [currentConnection, txBeingSent]);
 
     const _initialize = async(selectedAccount: string) => {
       const provider = new ethers.BrowserProvider(window.ethereum);
@@ -84,11 +106,14 @@ export default function Home() {
     };
 
     const _resetState = () => {
-      setNetworkError(undefined);
-      setCurrentConnection({
-        provider: undefined,
-        signer: undefined,
-        magic: undefined,
+            setNetworkError(undefined);
+            setTransactionError(undefined);
+            setTxBeingSent(undefined);
+            setCurrentBalance(undefined);
+            setCurrentConnection({
+            provider: undefined,
+            signer: undefined,
+            magic: undefined,
       });
     };
     
@@ -96,9 +121,29 @@ export default function Home() {
       setNetworkError(undefined);
     };
 
+    const _dismissTransactionError = () => {
+      setTransactionError(undefined);
+    };
 
+    const _getRpcErrorMessage = (error: any):string => {
+      console.log(error);
+      if(error.data) {
+        return error.data.message;
+
+      }
+      return error.message;
+    }
+
+    const handleTransactionSent = (txHash: string) => {
+      setTxBeingSent(txHash); // Устанавливаем хэш транзакции
+    };
+  
+    const handleTransactionError = (error: any) => {
+      setTransactionError(error); // Устанавливаем ошибку транзакции
+    };
+    
     return (
-      <main>         
+      <main>                 
         { !currentConnection?.signer && (
           <ConnectWallet
             connectWallet = {_connectWallet}
@@ -108,8 +153,32 @@ export default function Home() {
         )}
         {currentConnection?.signer && (
           <p>Your address: {currentConnection.signer.address}</p>
-        )}     
+        )}  
         
+        {txBeingSent && <WaitinForTransactionMessage txHash={txBeingSent}/>}
+
+        {transactionError && (
+          <TransactionErrorMessage message = {_getRpcErrorMessage(transactionError)}
+          dismiss={_dismissTransactionError}
+          />
+        )}
+
+        {currentBalance && (
+          <p>Your balace: {ethers.formatEther(currentBalance)} ETH</p>
+        )}        
+        
+        {/* Если mintPrice доступна, показываем цену */}
+        {mintPrice && (
+        <p>Mint price: {ethers.formatEther(mintPrice)} ETH</p>
+      )}
+        
+       {/* Кнопка Минт всегда доступна, независимо от состояния кошелька */}
+       <MintButton
+        magic={currentConnection?.magic}
+        onTransactionSent={handleTransactionSent}
+        onTransactionError={handleTransactionError}
+      />
+
       </main>   
     );
 }
