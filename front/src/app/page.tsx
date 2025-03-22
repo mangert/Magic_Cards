@@ -19,8 +19,15 @@ const MAGIC_CARD_ADDRESS = "0x5fbdb2315678afecb367f032d93f642f64180aa3";
 
 declare let window: any;
 
+type CurrentConnectionProps = {
+  provider: BrowserProvider | undefined;
+  magic: MagicCard | undefined;
+  signer: ethers.JsonRpcSigner | undefined;
+};
+
 export default function Home() {
     const [networkError, setNetworkError] = useState<string>();
+    const [currentConnection, setCurrentConnection] = useState<CurrentConnectionProps>();
   
     const _connectWallet = async() => {
         if(window.ethereum === undefined){
@@ -51,28 +58,58 @@ export default function Home() {
           _resetState;      
         }
       );
-    }
+    };
 
     const _initialize = async(selectedAccount: string) => {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner(selectedAccount);
-    }
 
-
-    const _checkNetwork() => async (): Promise<boolean> => {
+      setCurrentConnection({
+        ...currentConnection,
+        provider,
+        signer,
+        magic: MagicCard__factory.connect(MAGIC_CARD_ADDRESS, signer),
+      });
+    };
+    
+    const _checkNetwork = async (): Promise<boolean> => {
       const chosenChainId = await window.ethereum.request({
         method: "eth_chainId",
       });
-      if (chosenChainId === HARDHAT_NETWORK_ID){
+      if (chosenChainId === HARDHAT_NETWORK_ID) {
         return true;
       }
       setNetworkError("Please connect to HardHat network (localhost:8545)");
       return false;
     };
 
+    const _resetState = () => {
+      setNetworkError(undefined);
+      setCurrentConnection({
+        provider: undefined,
+        signer: undefined,
+        magic: undefined,
+      });
+    };
+    
+    const _dismissNetworkError = () => {
+      setNetworkError(undefined);
+    };
+
+
     return (
-      <main>
-      
+      <main>         
+        { !currentConnection?.signer && (
+          <ConnectWallet
+            connectWallet = {_connectWallet}
+            networkError = {networkError}
+            dismiss = {_dismissNetworkError}
+          />    
+        )}
+        {currentConnection?.signer && (
+          <p>Your address: {currentConnection.signer.address}</p>
+        )}     
+        
       </main>   
     );
 }
