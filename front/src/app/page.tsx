@@ -36,7 +36,8 @@ export default function Home() {
     const [mintPrice, setMintPrice] = useState<string | null>(null);
     const [currentConnection, setCurrentConnection] = useState<CurrentConnectionProps>();
     const [publicProvider, setPublicProvider] = useState<ethers.AbstractProvider | null>(null);
-    const [refreshNFTs, setRefreshNFTs] = useState<boolean>(false); // Флаг для обновления лент NFT
+    const [refreshNFTs, setRefreshNFTs] = useState<boolean>(false);
+    const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
     const updateNFTs = () => {
       setRefreshNFTs((prev) => !prev); // Переключаем флаг для триггера обновления
@@ -183,7 +184,13 @@ export default function Home() {
     };    
     
     return (
-      <main>                 
+      <main>
+        
+        {/* Статусная строка */}
+          {statusMessage && (
+          <p className="p-2 mb-4 text-center text-white bg-gray-800 rounded">{statusMessage}</p>
+        )}
+                         
         { !currentConnection?.signer && (
           <ConnectWallet
             connectWallet = {_connectWallet}
@@ -195,13 +202,13 @@ export default function Home() {
           <p>Your address: {currentConnection.signer.address}</p>
         )}  
         
-        {txBeingSent && <WaitinForTransactionMessage txHash={txBeingSent}/>}
+        {/* {txBeingSent && <WaitinForTransactionMessage txHash={txBeingSent}/>}
 
         {transactionError && (
           <TransactionErrorMessage message = {_getRpcErrorMessage(transactionError)}
           dismiss={_dismissTransactionError}
           />
-        )}
+        )} */}
 
         {currentBalance && (
           <p>Your balace: {ethers.formatEther(currentBalance)} ETH</p>
@@ -218,6 +225,7 @@ export default function Home() {
         onTransactionError={handleTransactionError} 
         onUpdateNFTs={updateNFTs} 
         updateBalance={updateBalance} 
+        setStatusMessage={setStatusMessage} // Передаем функцию
       />      
 
       <NFTGallery 
@@ -226,6 +234,7 @@ export default function Home() {
         onUpdateNFTs={updateNFTs} 
         refreshNFTs={refreshNFTs} 
         updateBalance={updateBalance} 
+        setStatusMessage={setStatusMessage} // Передаем функцию
       />
 
       <UserNFTGallery 
@@ -234,6 +243,7 @@ export default function Home() {
         onUpdateNFTs={updateNFTs} 
         refreshNFTs={refreshNFTs} 
         updateBalance={updateBalance} 
+        setStatusMessage={setStatusMessage} // Передаем функцию
       />
 
       </main>   

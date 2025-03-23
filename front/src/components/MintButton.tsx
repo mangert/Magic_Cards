@@ -7,10 +7,11 @@ interface MintButtonProps {
   onTransactionSent: (txHash: string) => void;
   onTransactionError: (error: any) => void;
   onUpdateNFTs: () => void; 
-  updateBalance: () => void; 
+  updateBalance: () => void;
+  setStatusMessage: (message: string | null) => void; 
 }
 
-const MintButton: React.FC<MintButtonProps> = ({ magic, onTransactionSent, onTransactionError, onUpdateNFTs, updateBalance }) => {
+const MintButton: React.FC<MintButtonProps> = ({ magic, onTransactionSent, onTransactionError, onUpdateNFTs, updateBalance, setStatusMessage }) => {
   const [loading, setLoading] = useState(false);
   const [mintPrice, setMintPrice] = useState<string | null>(null);
 
@@ -37,15 +38,20 @@ const MintButton: React.FC<MintButtonProps> = ({ magic, onTransactionSent, onTra
         const tx = await magic.mint({ value: priceInWei, gasLimit: 1000000 });
     
         onTransactionSent(tx.hash);
+        console.log(`Транзакция отправлена: ${tx.hash}`);
+
+        setStatusMessage(`Mint in progress... TX: ${tx.hash}`);
         await tx.wait();
     
         onUpdateNFTs(); // Обновляем ленту пользователя
         await updateBalance(); // Обновляем баланс
+        setStatusMessage("Mint successful! 🎉");
     
         setLoading(false);
       } catch (error) {
-        setLoading(false);
-        console.error('Transaction error:', error);
+        console.error("Ошибка при минте:", error);
+        setStatusMessage("Mint failed ❌");
+        setLoading(false);        
         onTransactionError(error);
       }
     };

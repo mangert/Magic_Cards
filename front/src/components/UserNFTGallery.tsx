@@ -21,10 +21,12 @@ type UserNFTGalleryProps = {
   signer: ethers.JsonRpcSigner | undefined;
   onUpdateNFTs: () => void;
   refreshNFTs: boolean; 
-  updateBalance: () => void; 
+  updateBalance: () => void;
+  setStatusMessage: (message: string | null) => void; // Новый пропс 
+
 };
 
-function UserNFTGallery({ provider, signer, onUpdateNFTs, refreshNFTs, updateBalance }: UserNFTGalleryProps) {
+function UserNFTGallery({ provider, signer, onUpdateNFTs, refreshNFTs, updateBalance, setStatusMessage }: UserNFTGalleryProps) {
   const [nfts, setNfts] = useState<NFTData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -39,11 +41,14 @@ function UserNFTGallery({ provider, signer, onUpdateNFTs, refreshNFTs, updateBal
       try {
         setLoading(true);
         const magic = MagicCard__factory.connect(MAGIC_CARD_ADDRESS, signer);
-        const userAddress = await signer.getAddress();
-        const nftIds = await magic.userNFTs(userAddress);
+        const userAddress = await signer.getAddress();        
+        const nftIds = await magic.userNFTs(userAddress);      
+        
 
         const nftData = await Promise.all(
-          nftIds.map(async (id: number) => {
+          
+          nftIds
+          .map(async (id: number) => {
             const [name, reputation] = await magic.getDescription(id);
             const priceWei = await magic.getSellPrice(id);
 
@@ -69,19 +74,25 @@ function UserNFTGallery({ provider, signer, onUpdateNFTs, refreshNFTs, updateBal
   }, [signer, refreshNFTs]);
 
     const sellNFT = async (id: number) => {
-      if (!signer) return alert("Подключите кошелек!");
+      if (!signer) return setStatusMessage("Кошелек не подключен ❌");
       try {
         const magic = MagicCard__factory.connect(MAGIC_CARD_ADDRESS, signer);
         const tx = await magic.sellNFT(id);
+        
+        console.log(`Транзакция покупки отправлена: ${tx.hash}`);
+        setStatusMessage(`Покупка NFT... TX: ${tx.hash}`);
+        
         await tx.wait();
     
         setNfts((prevNfts) => prevNfts.filter((nft) => nft.id !== id));
-        onUpdateNFTs(); // Обновляем ленту контракта после продажи
+        onUpdateNFTs(); // Обновляем ленту контракта после продажи        
         await updateBalance(); // Обновляем баланс
-    
-        alert(`NFT #${id} успешно продан!`);
+
+        setStatusMessage(`NFT #${id} успешно продан! ✅`);    
+        
       } catch (error) {
         console.error("Ошибка при продаже:", error);
+        setStatusMessage("Ошибка при продаже ❌");
       }
     };
   
