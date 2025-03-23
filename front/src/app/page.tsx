@@ -14,6 +14,7 @@ import ConnectWallet from "@/components/ConnectWallet";
 import WaitinForTransactionMessage from "@/components/WaitingForTransactionMessage";
 import TransactionErrorMessage from "@/components/TransactionErrorMessage";
 import MintButton from "@/components/MintButton"; // Импортируем компонент MintButton
+import NFTGallery from "@/components/NFTGallery";
 
 const HARDHAT_NETWORK_ID = "0x539";
 const MAGIC_CARD_ADDRESS = "0x5fbdb2315678afecb367f032d93f642f64180aa3";
@@ -33,6 +34,12 @@ export default function Home() {
     const [currentBalance, setCurrentBalance] = useState<string>();
     const [mintPrice, setMintPrice] = useState<string | null>(null);
     const [currentConnection, setCurrentConnection] = useState<CurrentConnectionProps>();
+    const [publicProvider, setPublicProvider] = useState<ethers.AbstractProvider | null>(null);
+
+    useEffect(() => {
+      const provider = new ethers.JsonRpcProvider("http://localhost:8545");
+      setPublicProvider(provider);
+    }, []);
   
     const _connectWallet = async() => {
         if(window.ethereum === undefined){
@@ -66,21 +73,38 @@ export default function Home() {
     };
 
     useEffect(() => {
-        (async () => {
-          if (currentConnection?.provider) {
-            // Получаем цену для минта из контракта, не используя signer
-            const magic = MagicCard__factory.connect(MAGIC_CARD_ADDRESS, currentConnection.provider);
-            const priceInWei = await magic.getMintPrice(); // Получаем цену в wei
-            setMintPrice(priceInWei.toString()); // Сохраняем цену
+      const fetchMintPrice = async () => {
+          try {
+              const provider = new ethers.JsonRpcProvider("http://localhost:8545"); // Подключаем провайдер напрямую
+              const magic = MagicCard__factory.connect(MAGIC_CARD_ADDRESS, provider);
+              const priceInWei = await magic.getMintPrice();
+              setMintPrice(priceInWei.toString());
+          } catch (error) {
+              console.error("Ошибка при получении mintPrice:", error);
           }
-    
-          if (currentConnection?.provider && currentConnection.signer) {
-            setCurrentBalance(
-              (await currentConnection.provider.getBalance(currentConnection.signer.address)).toString()
-            );
+      };
+
+      fetchMintPrice(); // Вызываем функцию загрузки цены при монтировании компонента
+      
+    }, []);
+
+    // Функция для обновления баланса
+    const updateBalance = async () => {
+        if (currentConnection?.provider && currentConnection.signer) {
+          try {
+              const balance = await currentConnection.provider.getBalance(currentConnection.signer.address);
+              setCurrentBalance(balance.toString());
+          } catch (error) {
+              console.error("Ошибка при обновлении баланса:", error);
           }
-        })();
-      }, [currentConnection, txBeingSent]);
+        }   
+    };
+
+// Обновляем баланс при подключении или смене кошелька
+    useEffect(() => {
+      updateBalance();
+    }, [currentConnection]);
+
 
     const _initialize = async(selectedAccount: string) => {
       const provider = new ethers.BrowserProvider(window.ethereum);
@@ -133,10 +157,19 @@ export default function Home() {
       }
       return error.message;
     }
-
-    const handleTransactionSent = (txHash: string) => {
-      setTxBeingSent(txHash); // Устанавливаем хэш транзакции
-    };
+    const handleTransactionSent = async (txHash: string) => {
+      setTxBeingSent(txHash); // Устанавливаем хеш транзакции
+    
+      // Ждем подтверждения транзакции и обновляем баланс
+      try {
+          const receipt = await currentConnection?.provider?.waitForTransaction(txHash);
+          if (receipt?.status === 1) {
+              updateBalance();
+          }
+      } catch (error) {
+          console.error("Ошибка при ожидании транзакции:", error);
+      }
+    };    
   
     const handleTransactionError = (error: any) => {
       setTransactionError(error); // Устанавливаем ошибку транзакции
@@ -179,6 +212,9 @@ export default function Home() {
         onTransactionError={handleTransactionError}
       />
 
+        {/* Галерея NFT */}
+        <NFTGallery provider={(publicProvider as ethers.BrowserProvider) || currentConnection?.provider} signer={currentConnection?.signer} />
+      
       </main>   
     );
 }

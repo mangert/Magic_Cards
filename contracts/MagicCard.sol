@@ -10,8 +10,8 @@ contract MagicCard is ERC721, ERC165{
     address owner; //владелец
     
     //Описание токена и хранилище
-    enum  Elements {Jocker, Fire, Air, Water, Earth}
-    string [5] elementsName = ["Jocker", "Fire", "Air", "Water", "Earth"];         
+    enum  Elements {Jocker, Fire, Air, Aqua, Earth}
+    string [5] elementsName = ["Jocker", "Fire", "Air", "Aqua", "Earth"];         
 
     mapping(uint => uint) tokenRep;
     mapping(uint => Elements) tokenType;

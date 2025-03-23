@@ -24,3 +24,19 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.nft-container {
+  display: flex;
+  overflow-x: auto;
+  gap: 16px;
+  padding: 8px;
+}
+
+.nft-card {
+  width: 200px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 12px;
+  text-align: center;
+}
