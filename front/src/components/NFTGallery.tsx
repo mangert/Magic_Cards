@@ -17,11 +17,14 @@ type NFTData = {
 };
 
 type NFTGalleryProps = {
-    provider: ethers.AbstractProvider | undefined;
-    signer: ethers.JsonRpcSigner | undefined;
-  };
+  provider: ethers.AbstractProvider | undefined;
+  signer: ethers.JsonRpcSigner | undefined;
+  onUpdateNFTs: () => void;
+  refreshNFTs: boolean; 
+  updateBalance: () => void; 
+};
 
-function NFTGallery({ provider, signer }: NFTGalleryProps) {
+function NFTGallery({ provider, signer, onUpdateNFTs, refreshNFTs, updateBalance }: NFTGalleryProps) {
   const [nfts, setNfts] = useState<NFTData[]>([]);
 
   useEffect(() => {
@@ -55,24 +58,26 @@ function NFTGallery({ provider, signer }: NFTGalleryProps) {
       }
     };
 
-    fetchNFTs();
-  }, [provider]);
+    fetchNFTs(); // Вызываем при загрузке и обновлении
+  }, [provider, refreshNFTs]); // Следим за refreshNFTs
 
-  const buyNFT = async (id: number, priceInWei: string) => {
-    if (!signer) return alert("Подключите кошелек!");
-    try {
-      const magic = MagicCard__factory.connect(MAGIC_CARD_ADDRESS, signer);
-      const tx = await magic.buyNFT(id, { value: ethers.parseEther(priceInWei) });
-      await tx.wait();
-      
-      // Удаляем купленный NFT из списка
-      setNfts((prevNfts) => prevNfts.filter((nft) => nft.id !== id));
-
-      alert(`NFT #${id} успешно куплен!`);
-    } catch (error) {
-      console.error("Ошибка при покупке:", error);
-    }
-  };
+    const buyNFT = async (id: number, priceInWei: string) => {
+        if (!signer) return alert("Подключите кошелек!");
+        try {
+        const magic = MagicCard__factory.connect(MAGIC_CARD_ADDRESS, signer);
+        const tx = await magic.buyNFT(id, { value: ethers.parseEther(priceInWei) });
+        await tx.wait();
+    
+        setNfts((prevNfts) => prevNfts.filter((nft) => nft.id !== id));
+        onUpdateNFTs(); // Обновляем ленту пользователя после покупки
+        await updateBalance(); // Обновляем баланс
+    
+        alert(`NFT #${id} успешно куплен!`);
+        } catch (error) {
+        console.error("Ошибка при покупке:", error);
+        }
+    };
+    
 
   return (
     <div className="mt-8 overflow-x-auto">

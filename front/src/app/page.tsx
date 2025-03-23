@@ -15,6 +15,7 @@ import WaitinForTransactionMessage from "@/components/WaitingForTransactionMessa
 import TransactionErrorMessage from "@/components/TransactionErrorMessage";
 import MintButton from "@/components/MintButton"; // Импортируем компонент MintButton
 import NFTGallery from "@/components/NFTGallery";
+import UserNFTGallery from "@/components/UserNFTGallery";
 
 const HARDHAT_NETWORK_ID = "0x539";
 const MAGIC_CARD_ADDRESS = "0x5fbdb2315678afecb367f032d93f642f64180aa3";
@@ -35,6 +36,12 @@ export default function Home() {
     const [mintPrice, setMintPrice] = useState<string | null>(null);
     const [currentConnection, setCurrentConnection] = useState<CurrentConnectionProps>();
     const [publicProvider, setPublicProvider] = useState<ethers.AbstractProvider | null>(null);
+    const [refreshNFTs, setRefreshNFTs] = useState<boolean>(false); // Флаг для обновления лент NFT
+
+    const updateNFTs = () => {
+      setRefreshNFTs((prev) => !prev); // Переключаем флаг для триггера обновления
+    };
+
 
     useEffect(() => {
       const provider = new ethers.JsonRpcProvider("http://localhost:8545");
@@ -173,7 +180,7 @@ export default function Home() {
   
     const handleTransactionError = (error: any) => {
       setTransactionError(error); // Устанавливаем ошибку транзакции
-    };
+    };    
     
     return (
       <main>                 
@@ -204,17 +211,31 @@ export default function Home() {
         {mintPrice && (
         <p>Mint price: {ethers.formatEther(mintPrice)} ETH</p>
       )}
-        
-       {/* Кнопка Минт всегда доступна, независимо от состояния кошелька */}
-       <MintButton
-        magic={currentConnection?.magic}
-        onTransactionSent={handleTransactionSent}
-        onTransactionError={handleTransactionError}
+
+      <MintButton 
+        magic={currentConnection?.magic} 
+        onTransactionSent={handleTransactionSent} 
+        onTransactionError={handleTransactionError} 
+        onUpdateNFTs={updateNFTs} 
+        updateBalance={updateBalance} 
+      />      
+
+      <NFTGallery 
+        provider={publicProvider || currentConnection?.provider} 
+        signer={currentConnection?.signer} 
+        onUpdateNFTs={updateNFTs} 
+        refreshNFTs={refreshNFTs} 
+        updateBalance={updateBalance} 
       />
 
-        {/* Галерея NFT */}
-        <NFTGallery provider={(publicProvider as ethers.BrowserProvider) || currentConnection?.provider} signer={currentConnection?.signer} />
-      
+      <UserNFTGallery 
+        provider={publicProvider || currentConnection?.provider} 
+        signer={currentConnection?.signer} 
+        onUpdateNFTs={updateNFTs} 
+        refreshNFTs={refreshNFTs} 
+        updateBalance={updateBalance} 
+      />
+
       </main>   
     );
 }
