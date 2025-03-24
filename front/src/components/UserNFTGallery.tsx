@@ -4,8 +4,8 @@ import React, { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import { MagicCard__factory } from "@/typechain";
 import NFTCard from "./NFTCard";
+import { MAGIC_CARD_ADDRESS } from "@/config";
 
-const MAGIC_CARD_ADDRESS = "0x5fbdb2315678afecb367f032d93f642f64180aa3";
 const IMAGE_PATH = "/images/";
 
 type NFTData = {
@@ -46,21 +46,21 @@ function UserNFTGallery({ provider, signer, onUpdateNFTs, refreshNFTs, updateBal
         
 
         const nftData = await Promise.all(
-          
           nftIds
-          .map(async (id: number) => {
-            const [name, reputation] = await magic.getDescription(id);
-            const priceWei = await magic.getSellPrice(id);
-
-            return {
-              id,
-              name,
-              reputation: Number(reputation),
-              price: ethers.formatEther(priceWei),
-              image: `${IMAGE_PATH}${name}.png`,
-            };
-          })
+            .map((id: any) => (typeof id === "bigint" ? Number(id) : parseInt(id, 10)))
+            .map(async (id: number) => {
+              const [name, reputation] = await magic.getDescription(id);
+              const priceWei = await magic.getSellPrice(id);
+              return {
+                id,
+                name,
+                reputation: Number(reputation),
+                price: ethers.formatEther(priceWei),
+                image: `${IMAGE_PATH}${name}.png`,
+              };
+            })
         );
+        
 
         setNfts(nftData);
       } catch (error) {
@@ -98,21 +98,23 @@ function UserNFTGallery({ provider, signer, onUpdateNFTs, refreshNFTs, updateBal
   
 
   return (
-    <div className="mt-8 overflow-x-auto">
-      {loading ? (
-        <p>Загрузка...</p>
-      ) : !signer ? (
-        <p>Кошелек не подключен</p>
-      ) : nfts.length === 0 ? (
-        <p>У вас пока нет NFT</p>
-      ) : (
-        <div className="flex gap-4">
-          {nfts.map((nft) => (
-            <NFTCard key={nft.id} {...nft} onSell={sellNFT} isSellable={!!signer} />
-          ))}
-        </div>
-      )}
-    </div>
+    <div>
+    {loading ? (
+      <p>Загрузка...</p>
+    ) : !signer ? (
+      <p>Кошелек не подключен</p>
+    ) : nfts.length === 0 ? (
+      <p>У вас пока нет NFT</p>
+    ) : (
+      <div className="nft-container">
+        {nfts.map((nft) => (
+          <NFTCard key={nft.id} {...nft} onSell={sellNFT} isSellable={!!signer} />
+        ))}
+      </div>
+    )}
+  </div>
+  
+    
   );
 }
 

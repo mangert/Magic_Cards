@@ -11,14 +11,11 @@ import type { MagicCard } from "@/typechain";
 import type { BrowserProvider } from "ethers";
 
 import ConnectWallet from "@/components/ConnectWallet";
-import WaitinForTransactionMessage from "@/components/WaitingForTransactionMessage";
 import TransactionErrorMessage from "@/components/TransactionErrorMessage";
-import MintButton from "@/components/MintButton"; // Импортируем компонент MintButton
+import MintButton from "@/components/MintButton"; 
 import NFTGallery from "@/components/NFTGallery";
 import UserNFTGallery from "@/components/UserNFTGallery";
-
-const HARDHAT_NETWORK_ID = "0x539";
-const MAGIC_CARD_ADDRESS = "0x5fbdb2315678afecb367f032d93f642f64180aa3";
+import { MAGIC_CARD_ADDRESS, NETWORK_ID, PROVIDER } from "@/config";
 
 declare let window: any;
 
@@ -45,7 +42,7 @@ export default function Home() {
 
 
     useEffect(() => {
-      const provider = new ethers.JsonRpcProvider("http://localhost:8545");
+      const provider = new ethers.JsonRpcProvider(PROVIDER);
       setPublicProvider(provider);
     }, []);
   
@@ -81,6 +78,11 @@ export default function Home() {
     };
 
     useEffect(() => {
+      const scrollWrappers = document.querySelectorAll(".nft-scroll-wrapper");
+          scrollWrappers.forEach(wrapper => {
+          wrapper.scrollLeft = 0;
+      });
+      
       const fetchMintPrice = async () => {
           try {
               const provider = new ethers.JsonRpcProvider("http://localhost:8545"); // Подключаем провайдер напрямую
@@ -130,7 +132,7 @@ export default function Home() {
       const chosenChainId = await window.ethereum.request({
         method: "eth_chainId",
       });
-      if (chosenChainId === HARDHAT_NETWORK_ID) {
+      if (chosenChainId === NETWORK_ID) {
         return true;
       }
       setNetworkError("Please connect to HardHat network (localhost:8545)");
@@ -183,69 +185,75 @@ export default function Home() {
       setTransactionError(error); // Устанавливаем ошибку транзакции
     };    
     
-    return (
+    return (     
+      
+      
       <main>
-        
-        {/* Статусная строка */}
-          {statusMessage && (
-          <p className="p-2 mb-4 text-center text-white bg-gray-800 rounded">{statusMessage}</p>
-        )}
-                         
-        { !currentConnection?.signer && (
-          <ConnectWallet
-            connectWallet = {_connectWallet}
-            networkError = {networkError}
-            dismiss = {_dismissNetworkError}
-          />    
-        )}
-        {currentConnection?.signer && (
-          <p>Your address: {currentConnection.signer.address}</p>
-        )}  
-        
-        {/* {txBeingSent && <WaitinForTransactionMessage txHash={txBeingSent}/>}
+        {/* Контейнер для подключения кошелька */}
+        <div className="wallet-container">
+          {!currentConnection?.signer ? (
+            <>
+              <ConnectWallet connectWallet={_connectWallet} networkError={networkError} dismiss={() => setNetworkError(undefined)} />
+              <p>Кошелек не подключен</p>
+            </>
+          ) : (
+            <p>Кошелек подключен: {currentConnection.signer.address}</p>
+          )}
+        </div>
 
-        {transactionError && (
-          <TransactionErrorMessage message = {_getRpcErrorMessage(transactionError)}
-          dismiss={_dismissTransactionError}
+        {/* Заголовок страницы */}
+        <h1>Волшебные карты Элементалей</h1>
+
+        {/* Картинки в ряд */}
+        <div className="image-container">
+          <img src="/images/Fire.png" alt="Fire" />
+          <img src="/images/Air.png" alt="Air" />
+          <img src="/images/Jocker.png" alt="Jocker" className="jocker" />
+          <img src="/images/Aqua.png" alt="Aqua" />
+          <img src="/images/Earth.png" alt="Earth" />
+        </div>
+
+        {/* Описание */}
+        <p>Здесь будет описание проекта...</p>
+
+        {/* Кнопка Mint */}
+        <div className="mint-container">
+        <MintButton
+          magic={currentConnection?.magic}
+          onUpdateNFTs={updateNFTs}
+          updateBalance={updateBalance}
+          setStatusMessage={setStatusMessage}
+          onTransactionSent={(txHash) => setStatusMessage(`Транзакция отправлена: ${txHash}`)}
+          onTransactionError={(error) => setStatusMessage(`Ошибка: ${error.message}`)}
+        />
+        </div>
+
+        {/* Заголовок перед лентой пользователя */}
+        <h2 className="section-title">Твои NFT</h2>
+        <div className="nft-scroll-wrapper">
+          <UserNFTGallery 
+            provider={publicProvider || currentConnection?.provider} 
+            signer={currentConnection?.signer} 
+            onUpdateNFTs={updateNFTs} 
+            refreshNFTs={refreshNFTs} 
+            updateBalance={updateBalance} 
+            setStatusMessage={setStatusMessage} 
           />
-        )} */}
-
-        {currentBalance && (
-          <p>Your balace: {ethers.formatEther(currentBalance)} ETH</p>
-        )}        
+        </div>
         
-        {/* Если mintPrice доступна, показываем цену */}
-        {mintPrice && (
-        <p>Mint price: {ethers.formatEther(mintPrice)} ETH</p>
-      )}
 
-      <MintButton 
-        magic={currentConnection?.magic} 
-        onTransactionSent={handleTransactionSent} 
-        onTransactionError={handleTransactionError} 
-        onUpdateNFTs={updateNFTs} 
-        updateBalance={updateBalance} 
-        setStatusMessage={setStatusMessage} // Передаем функцию
-      />      
+        {/* Заголовок перед лентой контракта */}
+        <h2 className="section-title">Купи NFT</h2>
+        <div className="nft-scroll-wrapper">
+          <NFTGallery provider={publicProvider || currentConnection?.provider} signer={currentConnection?.signer} onUpdateNFTs={updateNFTs} refreshNFTs={refreshNFTs} updateBalance={updateBalance} setStatusMessage={setStatusMessage} />
+        </div>
+        
 
-      <NFTGallery 
-        provider={publicProvider || currentConnection?.provider} 
-        signer={currentConnection?.signer} 
-        onUpdateNFTs={updateNFTs} 
-        refreshNFTs={refreshNFTs} 
-        updateBalance={updateBalance} 
-        setStatusMessage={setStatusMessage} // Передаем функцию
-      />
+        {/* Статусная строка */}
+        {statusMessage && <div className="status-message">{statusMessage}</div>}
 
-      <UserNFTGallery 
-        provider={publicProvider || currentConnection?.provider} 
-        signer={currentConnection?.signer} 
-        onUpdateNFTs={updateNFTs} 
-        refreshNFTs={refreshNFTs} 
-        updateBalance={updateBalance} 
-        setStatusMessage={setStatusMessage} // Передаем функцию
-      />
+          
+  </main>
 
-      </main>   
     );
 }

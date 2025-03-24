@@ -4,8 +4,8 @@ import React, { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import { MagicCard__factory } from "@/typechain";
 import NFTCard from "./NFTCard";
+import { MAGIC_CARD_ADDRESS } from "@/config";
 
-const MAGIC_CARD_ADDRESS = "0x5fbdb2315678afecb367f032d93f642f64180aa3";
 const IMAGE_PATH = "/images/";
 
 type NFTData = {
@@ -95,12 +95,12 @@ function NFTGallery({ provider, signer, onUpdateNFTs, refreshNFTs, updateBalance
     
 
   return (
-    <div className="mt-8 overflow-x-auto">
-      <div className="flex gap-4">
+    <div className="nft-container">
+      
         {nfts.map((nft) => (
           <NFTCard key={nft.id} {...nft} onBuy={buyNFT} isBuyable={!!signer} />
         ))}
-      </div>
+      
     </div>
   );
 }

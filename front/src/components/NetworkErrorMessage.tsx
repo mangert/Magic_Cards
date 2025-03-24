@@ -11,7 +11,7 @@ const NetworkErrorMessage: React.FunctionComponent <
     return (<div>
         {message}
         <button type="button" onClick={dismiss}>
-            <span aria-bidden="true">&times;</span>
+            <span aria-hidden="true">&times;</span>
         </button>
     </div>
     );

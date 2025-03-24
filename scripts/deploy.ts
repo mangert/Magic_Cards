@@ -5,8 +5,9 @@ async function main() {
     const [deployer, owner] = await ethers.getSigners();
 
     const MagicCard = await ethers.getContractFactory("MagicCard");
-    const magic = await MagicCard.deploy();
+    const magic = await MagicCard.deploy();    
     await magic.waitForDeployment(); 
+    console.log(magic.target);
     await magic.preMint();   
 }
 

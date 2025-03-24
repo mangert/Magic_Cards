@@ -58,7 +58,7 @@ const MintButton: React.FC<MintButtonProps> = ({ magic, onTransactionSent, onTra
   
   return (
     <div>
-      <button onClick={handleMint} disabled={loading || !mintPrice}>
+      <button className="btn-primary" onClick={handleMint} disabled={loading || !mintPrice}>
         {loading ? 'Minting...' : 'Mint Card'}
       </button>
     </div>

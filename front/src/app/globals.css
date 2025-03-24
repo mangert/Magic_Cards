@@ -1,42 +1,162 @@
 @import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap");
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --primary: #00f0ff; /* Неоновый голубой */
+  --secondary: #ff00ff; /* Неоновый розовый */
+  --accent: #ffcc00; /* Желтый для контрастных элементов */
+  --card-bg: #1a1a1a; /* Темный фон карточек */
+  --card-border: var(--primary); /* Контрастная рамка */
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Orbitron', sans-serif !important;
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  overflow-x: hidden; /* Убираем горизонтальный скролл */
 }
 
+h1 {
+  color: var(--primary);
+  text-align: center;
+  text-transform: uppercase;
+  font-size: clamp(1.8rem, 4vw, 2.5rem);
+  text-shadow: 0 0 10px var(--primary);
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+p {
+  font-size: clamp(0.85rem, 1.6vw, 1rem);
+  color: var(--foreground);
+  text-align: center;
+  max-width: 80%;
+  margin: 0 auto 16px;
+}
+
+.image-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.image-container img {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+}
+
+.image-container .jocker {
+  width: 100px;
+  height: 100px;
+}
+
+.wallet-container {
+  position: absolute;
+  top: 10px;
+  left: 20px;
+  text-align: left;
+}
+
+/* Новый контейнер для ленты */
+
+.nft-scroll-wrapper {
+  width: 100%; /* Гарантируем, что контейнер занимает всю ширину */
+  max-width: 900px; /* Можно подстроить под страницу */
+  overflow-x: auto; /* Разрешаем горизонтальную прокрутку */
+  padding-bottom: 8px;
+  position: relative; /* Чтоб лента не уезжала за экран */
+}
+
+
+/* Лента */
 .nft-container {
   display: flex;
-  overflow-x: auto;
-  gap: 16px;
+  white-space: nowrap;
+  gap: 8px;
   padding: 8px;
+  height: 220px;
+  align-items: flex-start;
+  justify-content: flex-start;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  min-width: 100%; /* Теперь карточки не выходят за экран */
 }
 
+
+/* Карточки */
 .nft-card {
-  width: 200px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-  padding: 12px;
+  flex: 0 0 110px;
+  height: 140px;
+  padding: 4px;
+  scroll-snap-align: start;
+}
+
+.nft-card img {
+  width: 100%;
+  height: 70px; /* Увеличили, чтобы картинки влезали */
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.nft-card:hover {
+  box-shadow: 0px 0px 12px var(--secondary);
+}
+
+button {
+  background: var(--secondary);
+  color: var(--background);
+  padding: 6px 10px;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.3s, box-shadow 0.3s;
+  font-size: 0.7rem;
+}
+
+button:hover {
+  background: var(--primary);
+  box-shadow: 0px 0px 10px var(--primary);
+}
+
+.mint-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.section-title {
+  font-size: 1.2rem;
+  font-weight: bold;
   text-align: center;
+  color: var(--primary);
+  margin-top: 20px;
+}
+
+.status-message {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: var(--accent);
+  padding: 10px 20px;
+  border-radius: 8px;
+  box-shadow: 0px 0px 10px var(--accent);
+  text-align: center;
+  width: fit-content;
 }
