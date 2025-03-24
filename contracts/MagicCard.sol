@@ -169,7 +169,7 @@ contract MagicCard is ERC721, ERC165{
         require(msg.value >= mintPrice, "not enough money");
         require(isMintable(), "mint is over");
         
-        uint dropAmount = mintPrice / 3;        
+        uint dropAmount = mintPrice / 5;        
         _distributeAll(dropAmount);
                
         uint tokenId = counterNFT;

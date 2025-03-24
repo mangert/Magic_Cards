@@ -1,36 +1,85 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Волшебные карты Элементалей
 
-## Getting Started
+## 📌 Описание проекта
 
-First, run the development server:
+Этот проект представляет собой **NFT-коллекцию магических элементалей**, работающую на основе смарт-контракта **MagicCard.sol**. Пользователи могут **минтить, покупать и продавать** карты, управляя ими через веб-приложение, написанное на **React + Next.js**.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+Контракт включает:
+
+- 🔥 **Минтинг новых NFT**
+- 💰 **Покупку и продажу карт**
+- ⚡ **Систему репутации NFT**
+- 🔒 **Вывод средств владельцем** (пока без интерфейса)
+- 🛠 **Преминт (единовременный) при деплое**
+
+## 🚀 Развертывание и запуск
+
+### **1. Установка зависимостей**
+
+```sh
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### **2. Запуск локального Hardhat-сети**
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```sh
+npx hardhat node
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### **3. Деплой контракта в Hardhat-сеть**
 
-## Learn More
+```sh
+npx hardhat run scripts/deploy.ts --network hardhat
+```
 
-To learn more about Next.js, take a look at the following resources:
+### **4. Запуск фронтенда**
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```sh
+npm run dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### **5. Деплой в Sepolia** (тестовая сеть)
 
-## Deploy on Vercel
+```sh
+npx hardhat run scripts/deploy.ts --network sepolia
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+> ⚠️ **Для деплоя в Sepolia** нужно указать API-ключ Alchemy и приватный ключ в `.env`:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```sh
+ALCHEMY_API_URL=https://eth-sepolia.g.alchemy.com/v2/YOUR_ALCHEMY_API_KEY
+PRIVATE_KEY=твой_приватный_ключ
+```
+
+## 🎮 Функциональность
+
+### **Минтинг NFT**
+
+- Каждый пользователь может **минтить новые карты** (кроме Джокера) по фиксированной цене.
+- **Цена минта отображается рядом с кнопкой Mint**.
+- **NFT автоматически добавляются в галерею пользователя**.
+
+### **Покупка и продажа**
+
+- **Галерея контракта** показывает NFT, доступные для покупки.
+- **Галерея пользователя** показывает карты, которые он может продать.
+- Покупка и продажа **автоматически обновляют баланс**.
+
+### **Преминт (однократно при деплое)**
+
+- При развертывании контракта **автоматически минтятся начальные NFT**.
+- Это сделано, чтобы **в контракте сразу были NFT на продажу**.
+- **Джокер минтится на контракт и не продается**, обеспечивая владельцу прибыль.
+
+## 🔮 Будущие обновления
+
+### **CLI для владельца** (следующий релиз)
+
+> В текущей версии **нет интерфейса для владельца**. Управление владельцем (вывод средств, начисление репутации) будет добавлено **в отдельный CLI-инструмент**.
+
+---
+
+### **💡 Авторы и контакты**
+
+Если есть вопросы, предложения или баг-репорты, пишите в Issues! 🚀
+
