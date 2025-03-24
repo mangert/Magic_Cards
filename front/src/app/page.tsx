@@ -85,7 +85,7 @@ export default function Home() {
       
       const fetchMintPrice = async () => {
           try {
-              const provider = new ethers.JsonRpcProvider("http://localhost:8545"); // Подключаем провайдер напрямую
+              const provider = new ethers.JsonRpcProvider(PROVIDER); // Подключаем провайдер напрямую
               const magic = MagicCard__factory.connect(MAGIC_CARD_ADDRESS, provider);
               const priceInWei = await magic.getMintPrice();
               setMintPrice(priceInWei.toString());
@@ -185,19 +185,20 @@ export default function Home() {
       setTransactionError(error); // Устанавливаем ошибку транзакции
     };    
     
-    return (     
-      
-      
+    return (                
       <main>
         {/* Контейнер для подключения кошелька */}
         <div className="wallet-container">
-          {!currentConnection?.signer ? (
-            <>
-              <ConnectWallet connectWallet={_connectWallet} networkError={networkError} dismiss={() => setNetworkError(undefined)} />
-              <p>Кошелек не подключен</p>
-            </>
+        {!currentConnection?.signer ? (
+          <>
+            <ConnectWallet connectWallet={_connectWallet} networkError={networkError} dismiss={() => setNetworkError(undefined)} />
+           <p>Кошелек не подключен</p>
+          </>
           ) : (
+          <>
             <p>Кошелек подключен: {currentConnection.signer.address}</p>
+            {currentBalance && <p>Баланс: {ethers.formatEther(currentBalance)} ETH</p>}
+          </>
           )}
         </div>
 
@@ -214,19 +215,23 @@ export default function Home() {
         </div>
 
         {/* Описание */}
-        <p>Здесь будет описание проекта...</p>
+        <p>Войди в волшебный мир Элементалей! Подчини себе стихии!</p>
 
         {/* Кнопка Mint */}
         <div className="mint-container">
-        <MintButton
-          magic={currentConnection?.magic}
-          onUpdateNFTs={updateNFTs}
-          updateBalance={updateBalance}
-          setStatusMessage={setStatusMessage}
-          onTransactionSent={(txHash) => setStatusMessage(`Транзакция отправлена: ${txHash}`)}
-          onTransactionError={(error) => setStatusMessage(`Ошибка: ${error.message}`)}
-        />
+          <div className="mint-info">
+            <MintButton
+              magic={currentConnection?.magic}
+              onUpdateNFTs={updateNFTs}
+              updateBalance={updateBalance}
+              setStatusMessage={setStatusMessage}
+              onTransactionSent={(txHash) => setStatusMessage(`Транзакция отправлена: ${txHash}`)}
+              onTransactionError={(error) => setStatusMessage(`Ошибка: ${error.message}`)}
+            />
+            {mintPrice && <p className="mint-price">Цена минта: {ethers.formatEther(mintPrice)} ETH</p>}
+          </div>
         </div>
+
 
         {/* Заголовок перед лентой пользователя */}
         <h2 className="section-title">Твои NFT</h2>

@@ -160,3 +160,14 @@ button:hover {
   text-align: center;
   width: fit-content;
 }
+.mint-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mint-price {
+  color: var(--accent);
+  font-size: 1rem;
+  font-weight: bold;
+}

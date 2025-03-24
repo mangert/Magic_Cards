@@ -35,7 +35,7 @@ const MintButton: React.FC<MintButtonProps> = ({ magic, onTransactionSent, onTra
       setLoading(true);
       try {
         const priceInWei = await magic.mintPrice();
-        const tx = await magic.mint({ value: priceInWei, gasLimit: 1000000 });
+        const tx = await magic.mint({ value: priceInWei, gasLimit: 10000000 });
     
         onTransactionSent(tx.hash);
         console.log(`Транзакция отправлена: ${tx.hash}`);
