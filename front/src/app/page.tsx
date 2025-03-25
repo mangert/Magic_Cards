@@ -135,7 +135,7 @@ export default function Home() {
       if (chosenChainId === NETWORK_ID) {
         return true;
       }
-      setNetworkError("Please connect to HardHat network (localhost:8545)");
+      setNetworkError("Please connect to correct network");
       return false;
     };
 
