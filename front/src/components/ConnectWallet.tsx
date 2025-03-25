@@ -18,8 +18,7 @@ const ConnectWallet: React.FunctionComponent<ConnectWalletProps> = ({
                 {networkError 
                     && (<NetworkErrorMessage message = {networkError} dismiss={dismiss} />
                 )}      
-            </div>
-            <p>Please connect your account...</p>
+            </div>            
             <button className="btn-primary" onClick={connectWallet}>
                 Connect Wallet
             </button>

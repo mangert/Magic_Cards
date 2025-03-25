@@ -18,8 +18,8 @@ export default function NFTCard({ id, name, reputation, price, image, onBuy, onS
   return (
     <div className ="nft-card">
       <img src={image} alt={name} />
-      <p>{name} (ID: {id})</p>
-      <p>Reputation: {reputation}</p>
+      <p>{name} ID: {id}</p>
+      <p>Rep: {reputation}</p>
       <p>Price: {price} ETH</p>      
 
       {onBuy && (

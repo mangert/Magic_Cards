@@ -44,6 +44,39 @@ p {
   margin: 0 auto 16px;
 }
 
+/* Фиксируем заголовок вверху страницы */
+.header-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: var(--background); /* Цвет фона */
+  padding: 10px 0;
+  text-align: center;
+  z-index: 1000; /* Поверх всего */
+  border-bottom: 2px solid var(--primary); /* Легкий акцент */
+}
+
+/* Уменьшаем шрифт заголовка */
+.site-title {
+  font-size: 1.8rem; /* Было 2rem */
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+/* Общий контейнер, прикрепленный к заголовку */
+.top-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start; /* Выравниваем все элементы по верхнему краю */
+  width: 900px; /* Пока фиксируем, потом можно сделать адаптивным */
+  height: 90px; /* Уменьшили высоту */
+  margin: 0 auto;
+  padding: 5px 10px;
+  background: var(--background);
+  border-bottom: 2px solid var(--primary);
+}
+
 .image-container {
   display: flex;
   justify-content: center;
@@ -52,22 +85,30 @@ p {
   margin-bottom: 20px;
 }
 
-.image-container img {
-  width: 80px;
-  height: 80px;
-  object-fit: contain;
+/* Блок с изображениями */
+.images-container {
+  display: flex;
+  gap: 10px;
 }
 
-.image-container .jocker {
-  width: 100px;
-  height: 100px;
+/* Блок с изображениями */
+.images-container {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start; /* Все изображения прижаты вверх */
 }
 
+.images-container img {
+  width: 45px; /* Сделаем немного меньше */
+  height: 45px;
+}
+
+/* Блок кошелька */
 .wallet-container {
-  position: absolute;
-  top: 10px;
-  left: 20px;
-  text-align: left;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* Выровняли по левому краю */
+  gap: 3px;
 }
 
 /* Новый контейнер для ленты */
@@ -79,7 +120,6 @@ p {
   padding-bottom: 8px;
   position: relative; /* Чтоб лента не уезжала за экран */
 }
-
 
 /* Лента */
 .nft-container {
@@ -94,7 +134,6 @@ p {
   scroll-snap-type: x mandatory;
   min-width: 100%; /* Теперь карточки не выходят за экран */
 }
-
 
 /* Карточки */
 .nft-card {
@@ -160,6 +199,20 @@ button:hover {
   text-align: center;
   width: fit-content;
 }
+
+/* Блок минта */
+.mint-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* Выровняли текст и кнопку */
+  gap: 3px;
+}
+
+.mint-container p {
+  font-size: 0.85rem; /* Чуть уменьшили текст */
+  font-weight: bold;
+}
+
 .mint-info {
   display: flex;
   align-items: center;
@@ -170,4 +223,34 @@ button:hover {
   color: var(--accent);
   font-size: 1rem;
   font-weight: bold;
+}
+
+
+
+
+.wallet-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+
+.wallet-info {
+  text-align: left;
+  color: var(--foreground);
+}
+
+.btn-primary {
+  background: var(--secondary);
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  font-weight: bold;
+  transition: 0.3s;
+}
+
+.btn-primary:hover {
+  background: var(--primary);
 }

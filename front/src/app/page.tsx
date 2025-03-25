@@ -187,50 +187,57 @@ export default function Home() {
     
     return (                
       <main>
-        {/* Контейнер для подключения кошелька */}
-        <div className="wallet-container">
-        {!currentConnection?.signer ? (
-          <>
-            <ConnectWallet connectWallet={_connectWallet} networkError={networkError} dismiss={() => setNetworkError(undefined)} />
-           <p>Кошелек не подключен</p>
-          </>
-          ) : (
-          <>
-            <p>Кошелек подключен: {currentConnection.signer.address}</p>
-            {currentBalance && <p>Баланс: {ethers.formatEther(currentBalance)} ETH</p>}
-          </>
-          )}
-        </div>
-
         {/* Заголовок страницы */}
-        <h1>Волшебные карты Элементалей</h1>
+        <header className="header-container">
+          <h1 className="site-title">Волшебные карты Элементалей</h1>
+        </header>
+{/* Фиксированный контейнер под заголовком */}
+<div className="top-container">
 
-        {/* Картинки в ряд */}
-        <div className="image-container">
-          <img src="/images/Fire.png" alt="Fire" />
-          <img src="/images/Air.png" alt="Air" />
-          <img src="/images/Jocker.png" alt="Jocker" className="jocker" />
-          <img src="/images/Aqua.png" alt="Aqua" />
-          <img src="/images/Earth.png" alt="Earth" />
-        </div>
+  {/* Блок 1: Кошелек */}
+  <div className="wallet-container">
+    {!currentConnection?.signer ? (
+      <ConnectWallet 
+        connectWallet={_connectWallet} 
+        networkError={networkError} 
+        dismiss={() => setNetworkError(undefined)} 
+      />
+    ) : (
+      <div className="wallet-info">
+        <p>{currentConnection.signer.address.slice(0, 3)}...{currentConnection.signer.address.slice(-3)}</p>
+        <p>Баланс: {parseFloat(ethers.formatEther(currentBalance || "0")).toFixed(2)} ETH</p>
+      </div>
+    )}
+  </div>
 
-        {/* Описание */}
-        <p>Войди в волшебный мир Элементалей! Подчини себе стихии!</p>
+  {/* Блок 2: Изображения */}
+  <div className="images-container">
+    <img src="/images/Fire.png" alt="Fire" />
+    <img src="/images/Air.png" alt="Air" />
+    <img src="/images/Jocker.png" alt="Jocker" />
+    <img src="/images/Aqua.png" alt="Aqua" />
+    <img src="/images/Earth.png" alt="Earth" />
+  </div>
 
-        {/* Кнопка Mint */}
-        <div className="mint-container">
-          <div className="mint-info">
-            <MintButton
+  {/* Блок 3: Минт */}
+  <div className="mint-container">
+    <MintButton 
               magic={currentConnection?.magic}
               onUpdateNFTs={updateNFTs}
               updateBalance={updateBalance}
               setStatusMessage={setStatusMessage}
               onTransactionSent={(txHash) => setStatusMessage(`Транзакция отправлена: ${txHash}`)}
               onTransactionError={(error) => setStatusMessage(`Ошибка: ${error.message}`)}
-            />
-            {mintPrice && <p className="mint-price">Цена минта: {ethers.formatEther(mintPrice)} ETH</p>}
-          </div>
-        </div>
+    />
+    {mintPrice && <p>Цена: {parseFloat(ethers.formatEther(mintPrice)).toFixed(2)} ETH</p>}
+  </div>
+
+</div>
+
+
+        {/* Описание */}
+        <p>Войди в волшебный мир Элементалей! Подчини себе стихии!</p>
+
 
 
         {/* Заголовок перед лентой пользователя */}
