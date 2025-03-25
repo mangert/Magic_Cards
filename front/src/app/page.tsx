@@ -197,14 +197,14 @@ export default function Home() {
   {/* Блок 1: Кошелек */}
   <div className="wallet-container">
     {!currentConnection?.signer ? (
-      <ConnectWallet 
+      <ConnectWallet
         connectWallet={_connectWallet} 
         networkError={networkError} 
         dismiss={() => setNetworkError(undefined)} 
       />
     ) : (
       <div className="wallet-info">
-        <p>{currentConnection.signer.address.slice(0, 3)}...{currentConnection.signer.address.slice(-3)}</p>
+        <p>address: {currentConnection.signer.address.slice(0, 8)}......{currentConnection.signer.address.slice(-7)}</p>
         <p>Баланс: {parseFloat(ethers.formatEther(currentBalance || "0")).toFixed(2)} ETH</p>
       </div>
     )}
@@ -232,14 +232,7 @@ export default function Home() {
     {mintPrice && <p>Цена: {parseFloat(ethers.formatEther(mintPrice)).toFixed(2)} ETH</p>}
   </div>
 
-</div>
-
-
-        {/* Описание */}
-        <p>Войди в волшебный мир Элементалей! Подчини себе стихии!</p>
-
-
-
+</div>      
         {/* Заголовок перед лентой пользователя */}
         <h2 className="section-title">Твои NFT</h2>
         <div className="nft-scroll-wrapper">
