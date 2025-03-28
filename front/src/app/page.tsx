@@ -15,7 +15,7 @@ import TransactionErrorMessage from "@/components/TransactionErrorMessage";
 import MintButton from "@/components/MintButton"; 
 import NFTGallery from "@/components/NFTGallery";
 import UserNFTGallery from "@/components/UserNFTGallery";
-import { MAGIC_CARD_ADDRESS, NETWORK_ID, PROVIDER } from "@/config";
+import { MAGIC_CARD_ADDRESS, NETWORK_ID, PROVIDER, NETWORK_NAME } from "@/config";
 
 declare let window: any;
 
@@ -135,7 +135,7 @@ export default function Home() {
       if (chosenChainId === NETWORK_ID) {
         return true;
       }
-      setNetworkError("Please connect to correct network");
+      setNetworkError(`Ошибка сети! Подключись к ${NETWORK_NAME}`);
       return false;
     };
 
@@ -256,7 +256,6 @@ export default function Home() {
 
         {/* Статусная строка */}
         {statusMessage && <div className="status-message">{statusMessage}</div>}
-
           
   </main>
 
