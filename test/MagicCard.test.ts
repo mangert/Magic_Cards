@@ -158,5 +158,42 @@ describe("MagicCard", function() {
         expect(tx_wdAll).to.changeEtherBalance(user2, withdrawAmont);
         expect(tx_wdAll).to.changeEtherBalance(magicCard.target, -withdrawAmont);
     });
+
+    it("should increase rep", async function() {
+        const { user0, user1, magicCard } = await loadFixture(deploy);       
+        
+        const tx_premint = await magicCard.preMint();
+        await tx_premint.wait(1);
+
+        //user 1 покупает 10 NFT
+        for (let tokenId = 11; tokenId != 21; ++tokenId) {
+            let price = await magicCard.getBuyPrice(tokenId);
+            let [typeNFT, rep] = await magicCard.getDescription(tokenId);
+            let tx_buy = await magicCard.connect(user1).buyNFT(tokenId, {value: price});
+            await tx_buy.wait(1);            
+        }
+
+        //считаем репутацию вручную 
+
+        let count = await magicCard.getCountNFT();
+        let countRep = 0n;
+
+        for (let tokenId = 0n; tokenId != count; ++tokenId) {
+            
+            let [, rep] = await magicCard.getDescription(tokenId);
+            countRep += rep;            
+        }
+
+        console.log(`counted rep ${countRep}`);
+
+        let totalRep = await magicCard.getRep();
+
+        console.log(`total rep ${totalRep}`);
+
+        await expect(countRep).eq(totalRep);
+
+        
+        
+    });
     
 });
