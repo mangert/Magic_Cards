@@ -165,8 +165,8 @@ describe("MagicCard", function() {
         const tx_premint = await magicCard.preMint();
         await tx_premint.wait(1);
 
-        //user 1 покупает 10 NFT
-        for (let tokenId = 11; tokenId != 21; ++tokenId) {
+      
+        for (let tokenId = 11; tokenId != 26; ++tokenId) {
             let price = await magicCard.getBuyPrice(tokenId);
             let [typeNFT, rep] = await magicCard.getDescription(tokenId);
             let tx_buy = await magicCard.connect(user1).buyNFT(tokenId, {value: price});
@@ -182,15 +182,11 @@ describe("MagicCard", function() {
             
             let [, rep] = await magicCard.getDescription(tokenId);
             countRep += rep;            
-        }
+        }        
 
-        console.log(`counted rep ${countRep}`);
+        let totalRep = await magicCard.getRep();        
 
-        let totalRep = await magicCard.getRep();
-
-        console.log(`total rep ${totalRep}`);
-
-        await expect(countRep).eq(totalRep);
+        expect(countRep).eq(totalRep);
 
         
         

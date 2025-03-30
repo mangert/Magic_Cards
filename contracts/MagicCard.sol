@@ -54,10 +54,7 @@ contract MagicCard is ERC721, ERC165{
         owner = msg.sender;         
     }
 
-    //геттеры для тестирования - УБРАТЬ!!!
-    function getCounter() public view returns(uint) {
-        return counterNFT;        
-    }
+    //геттеры для тестирования - УБРАТЬ!!!   
 
     function getRep() public view returns(uint) {
         return totalRep;       
@@ -285,16 +282,7 @@ contract MagicCard is ERC721, ERC165{
         tokenRep[0] += repInc; //Джокер всегда получает премию
         totalRep += (2 * repInc); //аккумулируем репутацию
     }
-
-    function _totalRepCalc() internal view returns(uint) {
-        
-        uint _totalRep;
-        for(uint counter = 0; counter != counterNFT; ++counter){
-            _totalRep += tokenRep[counter];
-        }
-        return totalRep;
-    } 
-
+       
     function _createNewNFT(uint tokenId, address recipient) internal {
         
         Elements element = _calculateRandomElement(tokenId, recipient);
@@ -311,10 +299,10 @@ contract MagicCard is ERC721, ERC165{
     }
     
     function _distributeAll(uint dropAmount) internal {
-
-        uint _totalRep = _totalRepCalc();        
-        uint dropOnRep = dropAmount / (_totalRep !=0 ? _totalRep : 1);
         
+        uint dropOnRep = dropAmount / (totalRep !=0 ? totalRep : 1);
+        
+        //пересмотреть хранилище и возможно переделать этот цикл
         for(uint counter = 0; counter != counterNFT; ++counter) {
             if(_owners[counter] != address(this)) {
                 uint drop = dropOnRep * tokenRep[counter];
