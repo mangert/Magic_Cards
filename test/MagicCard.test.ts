@@ -1,4 +1,5 @@
-import { loadFixture, ethers, expect } from "./setup";
+import { MagicCard } from "../typechain-types";
+import { loadFixture, ethers, expect, magicCard } from "./setup";
 
 describe("MagicCard", function() {
     async function deploy() {        
@@ -186,10 +187,25 @@ describe("MagicCard", function() {
 
         let totalRep = await magicCard.getRep();        
 
-        expect(countRep).eq(totalRep);
+        expect(countRep).eq(totalRep);       
+        
+    });
 
-        
-        
+    it("should create description", async function() {
+        const { magicCard } = await loadFixture(deploy);       
+
+        const numJocker = 0n;
+        const jocker: MagicCard.TokenDescStruct = await magicCard.createTokenDesc(numJocker,0);      
+        const numAqua = 35n;
+        const aqua: MagicCard.TokenDescStruct = await magicCard.createTokenDesc(numAqua,3);
+
+        expect(jocker.tokenId).eq(numJocker);
+        expect(jocker.rep).eq(1000n);
+        expect(jocker.elementName).eq("Jocker");
+
+        expect(aqua.tokenId).eq(numAqua);
+        expect(aqua.rep).eq(50n);
+        expect(aqua.elementName).eq("Aqua");             
     });
     
 });

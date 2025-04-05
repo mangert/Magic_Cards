@@ -31,15 +31,16 @@ contract MagicCard is IERC721, IERC721Metadata, IERC721Receiver, ERC165 {
     mapping(uint => uint) tokenRep;
     mapping(uint => Elements) tokenType;
 
-    //заготовка под оптимизацию
-    /*struct TokenDesc {
+    //оптимизация
+    struct TokenDesc {        
         uint tokenId;
         Elements element;
+        string elementName;
         uint rep;        
-    }
-    //Storage
-    mapping(address => mapping(uint => TokenDesc) tokenStorage);
-    */
+        string tokenURI;
+    }    
+    mapping(address => TokenDesc[])  tokenStorage;
+    
 
     //Эмиссия, счетчики и аккумуляторы
     uint[5] public supply = [1, 111, 222, 333, 444]; //задаем значения максимального сапплая
@@ -50,7 +51,7 @@ contract MagicCard is IERC721, IERC721Metadata, IERC721Receiver, ERC165 {
     uint totalRep; //аккумулятор репутации
     bool preMintFlag = false;
 
-    //Цены wey
+    //Цены wei
     uint public mintPrice = 100000000000000000;
     uint public repPrice = 200000000000000;
 
@@ -70,6 +71,18 @@ contract MagicCard is IERC721, IERC721Metadata, IERC721Receiver, ERC165 {
         owner = msg.sender;
     }
 
+    //пробная функция - запись и чтнение в хранилище нового типа
+    function createTokenDesc(uint tokenID, Elements element) public view returns(TokenDesc memory){
+        TokenDesc memory token;
+        token.tokenId = tokenID;
+        token.element = element;
+        token.elementName = elementsName[uint(element)];
+        token.rep = _baseRep[uint(element)];        
+        token.tokenURI = "";
+        
+        return token;
+    }
+    
     //геттеры для тестирования - УБРАТЬ!!!
 
     function getRep() public view returns (uint) {
@@ -158,10 +171,7 @@ contract MagicCard is IERC721, IERC721Metadata, IERC721Receiver, ERC165 {
         _afterTokenTransfer(from, to, tokenId);
     }
 
-    function _isApprovedOrOwner(
-        address spender,
-        uint tokenId
-    ) internal view returns (bool) {
+    function _isApprovedOrOwner(address spender, uint tokenId) internal view returns (bool) {
         address _owner = ownerOf(tokenId);
 
         require(
@@ -177,17 +187,9 @@ contract MagicCard is IERC721, IERC721Metadata, IERC721Receiver, ERC165 {
         return _owners[tokenId] != address(0);
     }
 
-    function _beforeTokenTransfer(
-        address from,
-        address to,
-        uint tokenId
-    ) internal virtual {}
+    function _beforeTokenTransfer(address from, address to, uint tokenId ) internal virtual {}
 
-    function _afterTokenTransfer(
-        address from,
-        address to,
-        uint tokenId
-    ) internal virtual {}
+    function _afterTokenTransfer(address from, address to, uint tokenId ) internal virtual {}
 
     // Функции интерфейса IERC721Metadata
 
@@ -204,10 +206,7 @@ contract MagicCard is IERC721, IERC721Metadata, IERC721Receiver, ERC165 {
         recipient.transfer(amount);
     }
 
-    function withdraw(
-        uint amount,
-        address payable recipient
-    ) external onlyOwner {
+    function withdraw(uint amount, address payable recipient) external onlyOwner {
         uint minimumBalance = _calcMinimumBalance();
         uint maxAmount = address(this).balance - minimumBalance;
         require(amount <= maxAmount, "too much sum");
@@ -228,11 +227,7 @@ contract MagicCard is IERC721, IERC721Metadata, IERC721Receiver, ERC165 {
         return totalUserPrice;
     }
 
-    function setTaskRep(
-        uint tokenId,
-        uint repReward,
-        string memory message
-    ) external onlyOwner {
+    function setTaskRep(uint tokenId, uint repReward, string memory message) external onlyOwner {
         tokenRep[tokenId] += repReward;
         totalRep += repReward; //накапливаем суммарную репутацию
         address recipient = _owners[tokenId];
@@ -266,9 +261,7 @@ contract MagicCard is IERC721, IERC721Metadata, IERC721Receiver, ERC165 {
         return mintPrice + tokenRep[tokenId] * repPrice - (mintPrice / 5); //20% дисконта к цене минта, но контракт покупает всю репу;
     }
 
-    function tokenURI(
-        uint tokenId
-    ) public view _requireMinted(tokenId) returns (string memory) {
+    function tokenURI(uint tokenId) public view _requireMinted(tokenId) returns (string memory) {
         string memory _tokenURI = elementsName[uint(tokenType[tokenId])];
 
         string memory _base = _baseURI();
@@ -500,24 +493,14 @@ contract MagicCard is IERC721, IERC721Metadata, IERC721Receiver, ERC165 {
         }
     }
 
-    function onERC721Received(
-        address operator,
-        address from,
-        uint256 tokenId,
-        bytes calldata data
-    ) external override returns (bytes4) {
+    function onERC721Received(address operator, address from, uint256 tokenId, bytes calldata data) external override returns (bytes4) {
         // Логируем или обрабатываем информацию о переданном токене
         emit TokenReceived(operator, from, tokenId, data);
         // Возвращаем селектор функции, который подтверждает успешную обработку
         return this.onERC721Received.selector;
     }
 
-    function safeTransferFrom(
-        address from,
-        address to,
-        uint tokenId,
-        bytes calldata data
-    ) external override {}
+    function safeTransferFrom(address from, address to, uint tokenId, bytes calldata data) external override {}
 
     function transferFrom(address from, address to, uint tokenId, bytes calldata data) external override {}
 
