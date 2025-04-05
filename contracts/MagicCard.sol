@@ -72,7 +72,7 @@ contract MagicCard is IERC721, IERC721Metadata, IERC721Receiver, ERC165 {
     }
 
     //пробная функция - запись и чтнение в хранилище нового типа
-    function createTokenDesc(uint tokenID, Elements element) public view returns(TokenDesc memory){
+    function createTokenDesc(uint tokenID, Elements element) public view returns(TokenDesc memory){ //сделать внутренней
         TokenDesc memory token;
         token.tokenId = tokenID;
         token.element = element;
@@ -81,6 +81,12 @@ contract MagicCard is IERC721, IERC721Metadata, IERC721Receiver, ERC165 {
         token.tokenURI = "";
         
         return token;
+    }
+
+    function addNFT(address to, TokenDesc memory token) public { //удалить, техническая
+        
+        tokenStorage[to].push(token);
+
     }
     
     //геттеры для тестирования - УБРАТЬ!!!
@@ -128,22 +134,15 @@ contract MagicCard is IERC721, IERC721Metadata, IERC721Receiver, ERC165 {
         emit Approval(_owner, to, tokenId);
     }
 
-    function ownerOf(
-        uint tokenId
-    ) public view _requireMinted(tokenId) returns (address) {
+    function ownerOf(uint tokenId ) public view _requireMinted(tokenId) returns (address) {
         return _owners[tokenId];
     }
 
-    function isApprovedForAll(
-        address _owner,
-        address operator
-    ) public view returns (bool) {
+    function isApprovedForAll(address _owner, address operator) public view returns (bool) {
         return _operatorApprovals[_owner][operator];
     }
 
-    function getApproved(
-        uint tokenId
-    ) public view _requireMinted(tokenId) returns (address) {
+    function getApproved(uint tokenId) public view _requireMinted(tokenId) returns (address) {
         return _tokenApprovals[tokenId];
     }
 

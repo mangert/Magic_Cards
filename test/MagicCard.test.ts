@@ -1,5 +1,5 @@
 import { MagicCard } from "../typechain-types";
-import { loadFixture, ethers, expect, magicCard } from "./setup";
+import { loadFixture, ethers, expect } from "./setup";
 
 describe("MagicCard", function() {
     async function deploy() {        
